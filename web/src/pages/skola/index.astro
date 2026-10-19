@@ -1,0 +1,64 @@
+---
+// S04 ZŠ PRO DĚTI — spec §6 (S04), K23–K29.
+// "Sborovna" proper is S13 (/lide?oblast=skola), which isn't built in PHASE A (not one of the
+// 8 templates), so staff show here as a plain "Lidé ve škole" preview instead of claiming a
+// filtered-index feature that doesn't exist yet.
+import Base from '../../layouts/Base.astro';
+import Card from '../../components/Card.astro';
+import { getEntry, getCollection } from 'astro:content';
+
+const place = await getEntry('places', 'skola');
+const subjects = await getCollection('subjects');
+const allPeople = await getCollection('people');
+const staff = allPeople.filter((p) => p.data.homePlaces.includes('skola') && !p.data.placeholder);
+
+const subjectsWithFirstVideo = await Promise.all(
+  subjects.map(async (s) => ({
+    entry: s,
+    firstVideo: s.data.videos.length ? await getEntry('videos', s.data.videos[0]) : null,
+  }))
+);
+---
+<Base title={place.data.name} description={place.data.description}>
+  <p class="breadcrumb section" style="padding-bottom:0">
+    <a href="/">Mapa ostrova</a> · <a href="/mestecko-dobrilo">Městečko Dobrilo</a>
+  </p>
+  <div class="page-hero">
+    <p class="page-hero__eyebrow">{place.data.subtitle}</p>
+    <h1>{place.data.name}</h1>
+    <p class="page-hero__desc">{place.data.description}</p>
+  </div>
+
+  <section class="section">
+    <h2>Předměty</h2>
+    <div class="card-grid">
+      {subjectsWithFirstVideo.map(({ entry: s, firstVideo }) => (
+        <article class="subject-card">
+          <a class="subject-card__title" href={`/skola/predmet/${s.id}`}>
+            <b>{s.data.name}</b>
+            <span>{s.data.description}</span>
+          </a>
+          {firstVideo && (
+            <a class="btn btn--primary subject-card__cta" href={`/videa/${firstVideo.id}`}>
+              Otevřít první video
+            </a>
+          )}
+        </article>
+      ))}
+    </div>
+  </section>
+
+  {staff.length > 0 && (
+    <section class="section">
+      <h2>Lidé ve škole</h2>
+      <div class="card-grid">
+        {staff.map((p) => (
+          <Card href={`/lide/${p.id}`} title={p.data.name} description={p.data.role} image={p.data.photo} imageAlt={p.data.name} />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <a class="back-link" href="/mestecko-dobrilo">← Městečko Dobrilo</a>
+</Base>
+{/* .subject-card* styles live in global.css — see the comment in Card.astro for why */}

@@ -1,0 +1,74 @@
+---
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+import { getEntry } from 'astro:content';
+
+interface Props {
+  title: string;
+  description: string;
+  /** S01 only: fixed full-viewport "OS desktop" mode — no footer, windows.js, Dobrilo helper. */
+  shell?: boolean;
+}
+const { title, description, shell = false } = Astro.props;
+const dobrilo = shell ? await getEntry('characters', 'dobrilo') : null;
+---
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{title} — dobrilo.cz</title>
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#fffaf0" />
+  <meta name="robots" content="noindex" />
+  <!-- PHASE A prototype: not for public indexing. Real per-page SEO contract (spec §2.5 —
+       canonical URL, sharing preview, structured data) lands with the PHASE B production build. -->
+  <slot name="head" />
+</head>
+<body class={shell ? 'is-desktop-shell' : ''}>
+  <main>
+    <slot />
+  </main>
+  {!shell && <Footer />}
+
+  {shell && <div id="window-layer"></div>}
+
+  {shell && dobrilo && (
+    <div class="dobrilo-helper">
+      <div class="dobrilo-helper__bubble glass" id="dobrilo-helper-bubble" role="tooltip">
+        <p><strong>Ahoj, jsem Dobrilo!</strong></p>
+        <p>Klikni na tečku na mapě a podívej se, co se na tom místě skrývá. Kolečkem myši stránku posouváš, mapu přibližuješ tlačítky nahoře.</p>
+      </div>
+      {/* a real link (not a button) — on S01, windows.js opens this in a floating window, same
+          as any map pin would have; this is now the only way to reach his profile since he's no
+          longer a map point himself (see dobrilo.json's showOnMap: false) */}
+      <a class="dobrilo-helper__icon-btn" href="/postavy/dobrilo" aria-describedby="dobrilo-helper-bubble">
+        <img class="dobrilo-helper__icon" src={dobrilo.data.pinImage ?? dobrilo.data.image} alt="Dobrilo — otevřít profil" width="56" height="56" />
+      </a>
+    </div>
+  )}
+
+  {shell && (
+    <button type="button" class="btn btn--icon fullscreen-toggle glass" id="fullscreen-toggle" aria-label="Celá obrazovka" title="Celá obrazovka">⛶</button>
+  )}
+
+  <script is:inline src="/media.js"></script>
+  {shell && <script is:inline src="/windows.js"></script>}
+  {shell && (
+    <script is:inline>
+      (function () {
+        var btn = document.getElementById('fullscreen-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+          if (document.fullscreenElement) document.exitFullscreen();
+          else document.documentElement.requestFullscreen().catch(function () {});
+        });
+        document.addEventListener('fullscreenchange', function () {
+          btn.textContent = document.fullscreenElement ? '⤢' : '⛶';
+          btn.title = document.fullscreenElement ? 'Ukončit celou obrazovku' : 'Celá obrazovka';
+        });
+      })();
+    </script>
+  )}
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "[Ukázkový lektor]",
+  "role": "[Instruktor plavání — ukázkový profil pro prototyp]",
+  "intro": "Toto je ukázkový profil, který ověřuje šablonu S14 v prototypu PHASE A. Skutečný instruktor plavání se doplní později — viz PLACEHOLDER-CONTENT.md.",
+  "homePlaces": ["plavani"],
+  "video": "flashtones",
+  "placeholder": true
+}

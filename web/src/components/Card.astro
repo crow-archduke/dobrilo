@@ -1,0 +1,22 @@
+---
+// C04 — one shared card shape for places, subjects, videos and people (K19/K23/K25/K29/K30/K36).
+// A single parameterised component rather than four near-identical ones, since every PHASE A
+// card is the same shape: optional image, bold title, short description, one link.
+interface Props {
+  href: string;
+  title: string;
+  description?: string;
+  image?: string;
+  imageAlt?: string;
+  eyebrow?: string;
+}
+const { href, title, description, image, imageAlt = '', eyebrow } = Astro.props;
+---
+<a class="card" href={href}>
+  {image && <img src={image} alt={imageAlt} loading="lazy" />}
+  {eyebrow && <span class="card__eyebrow">{eyebrow}</span>}
+  <b>{title}</b>
+  {description && <span>{description}</span>}
+</a>
+{/* .card__eyebrow lives in src/styles/global.css, not a scoped style here — windows.js injects
+    just this markup into a floating window, which wouldn't carry a page-scoped <style> along */}

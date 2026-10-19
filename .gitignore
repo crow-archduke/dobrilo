@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+
+# Original/source material — never commit, never modify in place (see CLAUDE.md)
+/grafika/
+/hotové audioknihy/
+/lektoři/
+/videa(předměty)/
+
+# Large media that must not live in git even once copied for local dev (spec: never self-host,
+# never commit audio/video). web/public/media/ is gitignored wholesale; small photos used as
+# real site assets (e.g. lecturer portraits) are copied elsewhere under web/public/img/ instead.
+/web/public/media/
+
+# Astro / Node
+/web/node_modules/
+/web/dist/
+/web/.astro/
+npm-debug.log*

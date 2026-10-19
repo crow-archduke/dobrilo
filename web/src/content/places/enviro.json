@@ -1,0 +1,10 @@
+{
+  "placeId": "L05",
+  "name": "Enviro",
+  "subtitle": "Poznávej přírodu",
+  "description": "Přírodní část ostrova. Přírodovědný obsah, skuteční lidé i postavy přibudou, jakmile budou hotové.",
+  "href": "/enviro",
+  "x": 1960,
+  "y": 1420,
+  "minZoom": 0
+}

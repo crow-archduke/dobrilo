@@ -1,0 +1,55 @@
+---
+// S05 Předmět — spec §6 (S05), K25/K27/K29.
+// S06 Série videí isn't built in PHASE A (spec: "S06 i S10 se dokončí v PHASE B"), so a subject's
+// videos are listed directly here rather than grouped under a series detail page.
+export async function getStaticPaths() {
+  const { getCollection } = await import('astro:content');
+  const subjects = await getCollection('subjects');
+  return subjects.map((s) => ({ params: { slug: s.id }, props: { subject: s } }));
+}
+
+import Base from '../../../layouts/Base.astro';
+import Card from '../../../components/Card.astro';
+import { getEntry } from 'astro:content';
+
+const { subject } = Astro.props;
+const place = await getEntry('places', 'skola');
+const videos = await Promise.all(subject.data.videos.map((v: string) => getEntry('videos', v)));
+const people = await Promise.all(subject.data.people.map((p: string) => getEntry('people', p)));
+const firstVideo = videos[0];
+---
+<Base title={subject.data.name} description={subject.data.description}>
+  <p class="breadcrumb section" style="padding-bottom:0">
+    <a href="/">Mapa ostrova</a> · <a href="/skola">{place.data.name}</a>
+  </p>
+  <div class="page-hero">
+    <p class="page-hero__eyebrow">Předmět</p>
+    <h1>{subject.data.name}</h1>
+    <p class="page-hero__desc">{subject.data.description}</p>
+    {firstVideo && (
+      <p><a class="btn btn--primary" href={`/videa/${firstVideo.id}`}>Otevřít první video</a></p>
+    )}
+  </div>
+
+  <section class="section">
+    <h2>Videa</h2>
+    <div class="card-grid">
+      {videos.map((v) => (
+        <Card href={`/videa/${v.id}`} title={v.data.title} description={v.data.description} image={v.data.poster} imageAlt={v.data.title} eyebrow="Video" />
+      ))}
+    </div>
+  </section>
+
+  {people.length > 0 && (
+    <section class="section">
+      <h2>Lektoři</h2>
+      <div class="card-grid">
+        {people.map((p) => (
+          <Card href={`/lide/${p.id}`} title={p.data.name} description={p.data.role} image={p.data.photo} imageAlt={p.data.name} />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <a class="back-link" href="/skola">← Zpět Do školy</a>
+</Base>

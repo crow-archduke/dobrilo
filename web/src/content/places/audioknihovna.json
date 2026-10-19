@@ -1,0 +1,10 @@
+{
+  "placeId": "L07",
+  "name": "Audioknihovna",
+  "subtitle": "Poslouchej knihy",
+  "description": "Knihovna v městečku. Audioknihy už reálně existují — tahle stránka zatím ukazuje jen jejich seznam; přehrávání kapitol (S09/S10) je práce pro PHASE B.",
+  "href": "/audioknihovna",
+  "x": 2080,
+  "y": 1680,
+  "minZoom": 2
+}

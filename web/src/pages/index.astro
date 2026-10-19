@@ -1,0 +1,148 @@
+---
+// S01 Mapa Ostrova Socci — spec §3, K11–K20. Redesigned as a fixed full-viewport "OS desktop"
+// (see CLAUDE.md-adjacent notes in PLACEHOLDER-CONTENT.md for the rationale): no scrolling
+// welcome section anymore — Dobrilo moved to the persistent corner helper icon (Base.astro).
+// Places + characters are content-collection data (not hand-written HTML), but the DOM shape
+// handed to map.js is unchanged: an <ol id="places"> of <li data-id data-x data-y>, so the
+// pan/zoom engine itself stays exactly as it was (see web/README.md).
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const places = await getCollection('places');
+const characters = (await getCollection('characters')).filter((c) => c.data.showOnMap);
+---
+<Base shell title="Mapa Ostrova Socci" description="Prozkoumej Ostrov Socci — mapu míst, lidí a postav dobrilo.cz.">
+  <Fragment slot="head">
+    <link rel="preload" as="image" href="/img/island.avif" type="image/avif" />
+    <link rel="stylesheet" href="/map.css" />
+  </Fragment>
+
+  <section class="island" id="ostrov" data-view="mapa" aria-labelledby="ostrov-title">
+    <h1 id="ostrov-title" hidden>Mapa Ostrova Socci</h1>
+
+    <div class="island__bar glass">
+      <!-- K18 Mapa / Seznam míst -->
+      <div class="seg" role="group" aria-label="Zobrazení">
+        <button class="btn" type="button" data-view="mapa" aria-pressed="true">Mapa</button>
+        <button class="btn" type="button" data-view="seznam" aria-pressed="false">Seznam míst</button>
+      </div>
+      <!-- K14 / K15 / K17 -->
+      <div class="btn-group zoom-controls">
+        <button class="btn btn--icon" type="button" data-act="in" aria-label="Přiblížit" title="Přiblížit">+</button>
+        <button class="btn btn--icon" type="button" data-act="out" aria-label="Oddálit" title="Oddálit">−</button>
+        <button class="btn" type="button" data-act="all">Celý ostrov</button>
+      </div>
+    </div>
+
+    <div id="map"></div>
+
+    <ol class="places-list" id="places">
+      {places.map((p) => (
+        <li data-id={p.data.placeId} data-x={p.data.x} data-y={p.data.y} data-min-zoom={p.data.minZoom}>
+          <a href={p.data.href}><b>{p.data.name}</b><span>{p.data.subtitle}</span></a>
+        </li>
+      ))}
+      {characters.map((c) => (
+        <li
+          data-id={c.id}
+          data-type="character"
+          data-x={c.data.mapPosition?.x ?? 0}
+          data-y={c.data.mapPosition?.y ?? 0}
+          data-min-zoom="0"
+          data-image={c.data.pinImage ?? c.data.image}
+        >
+          <a href={`/postavy/${c.id}`}><b>{c.data.name}</b><span>Postava</span></a>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <script is:inline src="/map.js"></script>
+  <script>
+    (function () {
+      var section = document.getElementById('ostrov');
+      var list = document.getElementById('places');
+      var params = new URLSearchParams(location.search);
+
+      // places + characters from the list (single source of truth — spec §3.1, K13)
+      var places = Array.from(list.querySelectorAll('li[data-id]')).map(function (li) {
+        var a = li.querySelector('a');
+        return {
+          id: li.dataset.id,
+          type: li.dataset.type || 'place',
+          name: a.querySelector('b').textContent,
+          href: a.getAttribute('href'),
+          x: +li.dataset.x, y: +li.dataset.y,
+          minZoom: +(li.dataset.minZoom || 0),
+          image: li.dataset.image || null,
+          li: li
+        };
+      });
+
+      var saved = history.state && history.state.mapCam;   // K09: Back restores zoom + pan
+      var misto = params.get('misto') || params.get('postava');   // spec §2.3: both highlight on the map
+
+      // @ts-ignore — DobriloMap is a plain global from /map.js, not an ES module
+      var map = DobriloMap.init(document.getElementById('map'), {
+        places: places,
+        start: saved ? 'restore' : (misto ? 'highlight' : 'intro'),
+        camera: saved,
+        highlight: misto,
+        onError: function () { setView('seznam', true); }   // illustration failed → list
+      });
+
+      // K14/K15 buttons disabled at the limits; remember the view for Back
+      var btnIn = section.querySelector('[data-act="in"]');
+      var btnOut = section.querySelector('[data-act="out"]');
+      var saveT;
+      map.onChange(function (st) {
+        btnIn.disabled = st.atMax;
+        btnOut.disabled = st.atMin;
+        clearTimeout(saveT);
+        saveT = setTimeout(function () {
+          history.replaceState(Object.assign({}, history.state, { mapCam: st }), '');
+        }, 250);
+      });
+
+      section.querySelector('.zoom-controls').addEventListener('click', function (e) {
+        var act = e.target.closest('[data-act]');
+        if (!act) return;
+        if (act.dataset.act === 'in') map.zoomIn();
+        if (act.dataset.act === 'out') map.zoomOut();
+        if (act.dataset.act === 'all') {                       // K17 also clears ?misto / ?postava
+          map.reset();
+          markList(null);
+          params.delete('misto');
+          params.delete('postava');
+          replaceUrl();
+        }
+      });
+
+      // K18 Mapa / Seznam míst — /?zobrazeni=seznam; switching back keeps the map view
+      function setView(view, keepUrl) {
+        section.dataset.view = view;
+        section.querySelectorAll('[data-view]').forEach(function (b) {
+          if (b.tagName === 'BUTTON') b.setAttribute('aria-pressed', String(b.dataset.view === view));
+        });
+        if (keepUrl) return;
+        if (view === 'seznam') params.set('zobrazeni', 'seznam'); else params.delete('zobrazeni');
+        replaceUrl();
+      }
+      section.querySelector('.seg').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-view]');
+        if (b) setView(b.dataset.view);
+      });
+      if (params.get('zobrazeni') === 'seznam') setView('seznam', true);
+
+      function markList(id) {
+        places.forEach(function (p) { p.li.classList.toggle('is-active', p.id === id); });
+      }
+      if (misto) markList(misto);
+
+      function replaceUrl() {
+        var q = params.toString();
+        history.replaceState(history.state, '', location.pathname + (q ? '?' + q : '') + location.hash);
+      }
+    })();
+  </script>
+</Base>

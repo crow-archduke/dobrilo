@@ -1,0 +1,66 @@
+---
+// S08 Detail videa — spec §6 (S08), K28–K31, K51–K58, K68–K69.
+// Must also work as a direct, mapless entry point (F10): the breadcrumb always names the
+// video's real hlavní domov (home place/subject), never an assumed browsing history.
+export async function getStaticPaths() {
+  const { getCollection } = await import('astro:content');
+  const videos = await getCollection('videos');
+  return videos.map((v) => ({ params: { slug: v.id }, props: { video: v } }));
+}
+
+import Base from '../../layouts/Base.astro';
+import VideoPlayer from '../../components/VideoPlayer.astro';
+import Card from '../../components/Card.astro';
+import { getEntry } from 'astro:content';
+
+const { video } = Astro.props;
+const homePlace = await getEntry('places', video.data.homePlace);
+const subject = video.data.subject ? await getEntry('subjects', video.data.subject) : null;
+const performers = await Promise.all(
+  video.data.performers.map(async (slug: string) =>
+    (await getEntry('people', slug)) ?? (await getEntry('characters', slug))
+  )
+);
+---
+<Base title={video.data.title} description={video.data.description}>
+  <p class="breadcrumb section" style="padding-bottom:0">
+    <a href="/">Mapa ostrova</a> · <a href={homePlace.data.href}>{homePlace.data.name}</a>
+    {subject && <> · <a href={`/skola/predmet/${subject.id}`}>{subject.data.name}</a></>}
+  </p>
+
+  <section class="section video-section">
+    <h1>{video.data.title}</h1>
+    {video.data.placeholder && (
+      <p class="placeholder-flag">Ukázkové video — zástupný obsah prototypu</p>
+    )}
+    <VideoPlayer src={video.data.src} poster={video.data.poster} title={video.data.title} />
+    <p class="page-hero__desc">{video.data.description}</p>
+    <ul class="video-meta">
+      {video.data.duration && <li>Délka: {video.data.duration}</li>}
+      {video.data.audience && <li>Doporučené publikum: {video.data.audience}</li>}
+    </ul>
+  </section>
+
+  {performers.length > 0 && (
+    <section class="section">
+      <h2>Kdo ve videu účinkuje</h2>
+      <div class="card-grid">
+        {performers.map((p) => (
+          <Card
+            href={p.collection === 'people' ? `/lide/${p.id}` : `/postavy/${p.id}`}
+            title={p.data.name}
+            description={'role' in p.data ? p.data.role : p.data.intro}
+            image={'photo' in p.data ? p.data.photo : p.data.image}
+            imageAlt={p.data.name}
+          />
+        ))}
+      </div>
+    </section>
+  )}
+
+  {/* Czech declines nouns by case ("do Městečka", "do školy") and we can't reliably auto-decline
+      an arbitrary place name server-side, so the back-link stays in the nominative with no
+      preposition rather than risk bad grammar — see PLACEHOLDER-CONTENT.md. */}
+  <a class="back-link" href={homePlace.data.href}>← {homePlace.data.name}</a>
+</Base>
+{/* .video-section/.video-meta styles live in global.css — see the comment in Card.astro for why */}

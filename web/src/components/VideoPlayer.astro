@@ -1,0 +1,16 @@
+---
+// C05 — video přehrávač. Native <video controls> already gives us K51–K56 (play/pause, seek,
+// volume, fullscreen, captions-if-present) and the náhled/načítání/hraje/pauza/dokončeno/chyba
+// states for free, without autoplay — building a custom-skinned player is a PHASE B concern.
+interface Props {
+  src: string;
+  poster: string;
+  title: string;
+}
+const { src, poster, title } = Astro.props;
+---
+<video class="video-player" controls preload="none" poster={poster} aria-label={title}>
+  <source src={src} />
+  Tvůj prohlížeč nepodporuje přehrávání videa. <a href={src} data-no-window>Stáhnout video</a>.
+</video>
+{/* .video-player lives in global.css — see the comment in Card.astro for why */}

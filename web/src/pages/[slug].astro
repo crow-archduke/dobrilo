@@ -1,0 +1,50 @@
+---
+// Generic single-segment place page — spec §6 S07-shaped locations (Plavání, Lyžování, Enviro,
+// V TÝMU, Hmyzárium, Labyrint, Amfiteátr, Kulturní dům, Obchod) plus Přístav. One template for
+// every place that doesn't need bespoke structure (mestecko-dobrilo, skola and audioknihovna
+// keep their own dedicated pages — excluded below).
+export async function getStaticPaths() {
+  const { getCollection } = await import('astro:content');
+  const DEDICATED = new Set(['mestecko-dobrilo', 'skola', 'audioknihovna']);
+  const places = await getCollection('places');
+  return places
+    .filter((p) => !DEDICATED.has(p.id))
+    .map((p) => ({ params: { slug: p.id }, props: { place: p } }));
+}
+
+import Base from '../layouts/Base.astro';
+import Card from '../components/Card.astro';
+import { getCollection } from 'astro:content';
+
+const { place } = Astro.props;
+const allPeople = await getCollection('people');
+const allCharacters = await getCollection('characters');
+const localPeople = allPeople.filter((p) => p.data.homePlaces.includes(place.id));
+const localCharacters = allCharacters.filter((c) => c.data.homePlace === place.id);
+const hasPlaceholder = localPeople.some((p) => p.data.placeholder) || false;
+---
+<Base title={place.data.name} description={place.data.description}>
+  <p class="breadcrumb section" style="padding-bottom:0"><a href="/">Mapa ostrova</a></p>
+  <div class="page-hero">
+    <p class="page-hero__eyebrow">{place.data.subtitle}</p>
+    <h1>{place.data.name}</h1>
+    <p class="page-hero__desc">{place.data.description}</p>
+  </div>
+
+  {(localPeople.length > 0 || localCharacters.length > 0) && (
+    <section class="section">
+      <h2>Koho tu potkáš</h2>
+      {hasPlaceholder && <p class="placeholder-flag">Ukázkový profil — ověřuje šablonu, není skutečný obsah</p>}
+      <div class="card-grid">
+        {localPeople.map((p) => (
+          <Card href={`/lide/${p.id}`} title={p.data.name} description={p.data.role} image={p.data.photo} imageAlt={p.data.name} />
+        ))}
+        {localCharacters.map((c) => (
+          <Card href={`/postavy/${c.id}`} title={c.data.name} description={c.data.intro} image={c.data.image} imageAlt={c.data.name} eyebrow="Postava" />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <a class="back-link" href="/">← Zpět na mapu ostrova</a>
+</Base>

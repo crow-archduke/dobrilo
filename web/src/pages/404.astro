@@ -1,0 +1,14 @@
+---
+// S22 Stránka nenalezena — spec §6 (S22), K72. A small bonus beyond the 8 PHASE A templates:
+// Astro serves this with a real HTTP 404 (spec §2.5's hard requirement), and it's nearly free.
+// "Hledat na Socci" (S19) isn't built in PHASE A, so only the working "Na mapu ostrova" CTA shows.
+import Base from '../layouts/Base.astro';
+---
+<Base title="Stránka nenalezena" description="Tuhle stránku se nepodařilo najít.">
+  <section class="section not-found">
+    <h1>Tuhle stránku se nepodařilo najít</h1>
+    <p class="page-hero__desc">Možná byla přesunuta nebo ještě není zveřejněná. Zkus se vrátit na mapu ostrova.</p>
+    <p><a class="btn btn--primary" href="/">Na mapu ostrova</a></p>
+  </section>
+</Base>
+{/* .not-found styles live in global.css — see the comment in Card.astro for why */}

@@ -1,0 +1,54 @@
+---
+// S03 Městečko Dobrilo — spec §6 (S03), K11–K13, K09.
+// Town buildings are every place with minZoom >= 2 (the "merges into Městečko when zoomed out"
+// group, spec §3.1/§3.2) — listed dynamically so a new town building just needs a content file,
+// no page edit.
+import Base from '../layouts/Base.astro';
+import Card from '../components/Card.astro';
+import { getCollection, getEntry } from 'astro:content';
+
+const place = await getEntry('places', 'mestecko-dobrilo');
+const allPlaces = await getCollection('places');
+const townBuildings = allPlaces
+  .filter((p) => p.data.minZoom >= 2)
+  .sort((a, b) => a.data.placeId.localeCompare(b.data.placeId));
+const allCharacters = await getCollection('characters');
+const localCharacters = allCharacters.filter((c) => c.data.homePlace === 'mestecko-dobrilo');
+---
+<Base title={place.data.name} description={place.data.description}>
+  <p class="breadcrumb section" style="padding-bottom:0"><a href="/">Mapa ostrova</a></p>
+  <div class="page-hero">
+    <p class="page-hero__eyebrow">{place.data.subtitle}</p>
+    <h1>{place.data.name}</h1>
+    <p class="page-hero__desc">{place.data.description}</p>
+  </div>
+
+  <section class="section">
+    <h2>Kam se vydáš</h2>
+    <div class="card-grid">
+      {townBuildings.map((p) => (
+        <Card href={p.data.href} title={p.data.name} description={p.data.subtitle} eyebrow="Místo" />
+      ))}
+    </div>
+  </section>
+
+  {localCharacters.length > 0 && (
+    <section class="section">
+      <h2>Koho tu potkáš</h2>
+      <div class="card-grid">
+        {localCharacters.map((c) => (
+          <Card
+            href={`/postavy/${c.id}`}
+            title={c.data.name}
+            description={c.data.intro}
+            image={c.data.image}
+            imageAlt={c.data.name}
+            eyebrow="Postava"
+          />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <a class="back-link" href="/">← Zpět na mapu ostrova</a>
+</Base>

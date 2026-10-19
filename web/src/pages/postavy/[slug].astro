@@ -1,0 +1,51 @@
+---
+// S16 Profil postavy — spec §6 (S16), K20/K31/K36-38/K51-58/K68-69.
+export async function getStaticPaths() {
+  const { getCollection } = await import('astro:content');
+  const characters = await getCollection('characters');
+  return characters.map((c) => ({ params: { slug: c.id }, props: { character: c } }));
+}
+
+import Base from '../../layouts/Base.astro';
+import Card from '../../components/Card.astro';
+import VideoPlayer from '../../components/VideoPlayer.astro';
+import { getEntry } from 'astro:content';
+
+const { character } = Astro.props;
+const homePlace = await getEntry('places', character.data.homePlace);
+const video = character.data.video ? await getEntry('videos', character.data.video) : null;
+---
+<Base title={character.data.name} description={character.data.intro}>
+  <p class="breadcrumb section" style="padding-bottom:0">
+    <a href="/">Mapa ostrova</a> · <a href={homePlace.data.href}>{homePlace.data.name}</a>
+  </p>
+
+  <section class="section character-hero">
+    <img class="character-hero__img" src={character.data.image} alt={character.data.name} />
+    <div>
+      <h1>{character.data.name}</h1>
+      <p class="page-hero__desc">{character.data.intro}</p>
+      {character.data.story && <p class="page-hero__desc">{character.data.story}</p>}
+      <p><a class="btn" href={`/?postava=${character.id}`}>Ukázat na mapě</a></p>
+    </div>
+  </section>
+
+  {video && (
+    <section class="section">
+      <h2>Medailonek</h2>
+      {video.data.placeholder && <p class="placeholder-flag">Ukázkové video — zástupný obsah prototypu</p>}
+      <VideoPlayer src={video.data.src} poster={video.data.poster} title={`Medailonek — ${character.data.name}`} />
+    </section>
+  )}
+
+  <section class="section">
+    <h2>Kde mě potkáš</h2>
+    <div class="card-grid">
+      <Card href={homePlace.data.href} title={homePlace.data.name} description={homePlace.data.subtitle} />
+    </div>
+  </section>
+
+  {/* nominative, no preposition — see the comment in videa/[slug].astro / PLACEHOLDER-CONTENT.md */}
+  <a class="back-link" href={homePlace.data.href}>← {homePlace.data.name}</a>
+</Base>
+{/* .character-hero* styles live in global.css — see the comment in Card.astro for why */}

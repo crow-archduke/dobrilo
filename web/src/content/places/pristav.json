@@ -1,0 +1,10 @@
+{
+  "placeId": "L13",
+  "name": "Přístav",
+  "subtitle": "Jak ostrov funguje",
+  "description": "Vstup do světa na pobřeží ostrova. Tady potkáš Dobrila a dozvíš se, jak se po Socci pohybovat.",
+  "href": "/pristav",
+  "x": 1300,
+  "y": 2390,
+  "minZoom": 0
+}

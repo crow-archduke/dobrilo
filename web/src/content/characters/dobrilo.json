@@ -1,0 +1,10 @@
+{
+  "name": "Dobrilo",
+  "image": "/img/postavy/dobrilo-profile.png",
+  "pinImage": "/img/postavy/dobrilo-pin.png",
+  "intro": "Dobrilo je starší kamarád, který zná na ostrově každé zákoutí. Neučí jako dospělák — je spíš jako starší skaut, co tě vezme s sebou a ukáže ti, kde co najdeš.",
+  "story": "Dobrilo tu bydlí odjakživa a prošel ostrov křížem krážem — od pobřeží až po nejvzdálenější kout. Nejradši je, když může poznávat nové tváře a být zrovna u toho, co se na ostrově děje.",
+  "homePlace": "pristav",
+  "mapPosition": { "x": 1470, "y": 2270 },
+  "showOnMap": false
+}

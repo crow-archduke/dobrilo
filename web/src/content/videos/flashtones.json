@@ -1,0 +1,11 @@
+{
+  "title": "Flashtones",
+  "poster": "/img/videa/flashtones.jpg",
+  "src": "/media/hudebka/flashtones.mp4",
+  "description": "Ukázkové video pro ověření přehrávače ve školním prototypu. Skutečný obsah hudební výchovy se doplní později.",
+  "homePlace": "skola",
+  "subject": "hudebka",
+  "performers": [],
+  "duration": "3:22",
+  "placeholder": true
+}

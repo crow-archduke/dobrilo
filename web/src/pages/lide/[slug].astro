@@ -1,0 +1,66 @@
+---
+// S14 Profil skutečného člověka — spec §6 (S14), K31/K36-38/K51-56/K68-69.
+// `photo` is optional in the schema only so a clearly-marked placeholder fixture can skip it
+// rather than using a fabricated or borrowed likeness (see PLACEHOLDER-CONTENT.md); a real,
+// publishable profile always has a photo or an approved stand-in portrait per spec §2.4.
+export async function getStaticPaths() {
+  const { getCollection } = await import('astro:content');
+  const people = await getCollection('people');
+  return people.map((p) => ({ params: { slug: p.id }, props: { person: p } }));
+}
+
+import Base from '../../layouts/Base.astro';
+import VideoPlayer from '../../components/VideoPlayer.astro';
+import Card from '../../components/Card.astro';
+import { getEntry } from 'astro:content';
+
+const { person } = Astro.props;
+const homePlaces = await Promise.all(person.data.homePlaces.map((h: string) => getEntry('places', h)));
+const video = person.data.video ? await getEntry('videos', person.data.video) : null;
+---
+<Base title={person.data.name} description={person.data.intro}>
+  <p class="breadcrumb section" style="padding-bottom:0">
+    <a href="/">Mapa ostrova</a>
+    {homePlaces[0] && <> · <a href={homePlaces[0].data.href}>{homePlaces[0].data.name}</a></>}
+  </p>
+
+  <section class="section person-hero">
+    {person.data.photo
+      ? <img class="person-hero__photo" src={person.data.photo} alt={person.data.name} />
+      : <div class="person-hero__photo person-hero__photo--fallback" aria-hidden="true">{person.data.name.replace(/[\[\]]/g, '').charAt(0)}</div>
+    }
+    <div>
+      <h1>{person.data.name}</h1>
+      <p class="person-hero__role">{person.data.role}</p>
+      {person.data.placeholder && <p class="placeholder-flag">Ukázkový profil — ověřuje šablonu, není skutečný lektor</p>}
+      <p class="page-hero__desc">{person.data.intro}</p>
+      {person.data.expertise && <p class="page-hero__desc">{person.data.expertise}</p>}
+    </div>
+  </section>
+
+  <section class="section">
+    {video ? (
+      <>
+        <h2>Medailonek</h2>
+        <VideoPlayer src={video.data.src} poster={video.data.poster} title={`Medailonek — ${person.data.name}`} />
+      </>
+    ) : homePlaces[0] && (
+      // nominative, no preposition — avoids guessing Czech declension (see videa/[slug].astro)
+      <a class="btn btn--primary" href={homePlaces[0].data.href}>{homePlaces[0].data.name} →</a>
+    )}
+  </section>
+
+  {homePlaces.length > 0 && (
+    <section class="section">
+      <h2>Kde mě potkáš</h2>
+      <div class="card-grid">
+        {homePlaces.map((pl) => (
+          <Card href={pl.data.href} title={pl.data.name} description={pl.data.subtitle} />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <a class="back-link" href="/">← Zpět na mapu ostrova</a>
+</Base>
+{/* .person-hero* styles live in global.css — see the comment in Card.astro for why */}

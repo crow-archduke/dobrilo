@@ -1,0 +1,10 @@
+{
+  "placeId": "L12",
+  "name": "Obchod",
+  "subtitle": "Produkty Flashtones",
+  "description": "Vstup k fyzickým produktům v městečku. Nákup bude probíhat v externím e-shopu, jehož adresa zatím chybí.",
+  "href": "/obchod",
+  "x": 2180,
+  "y": 1800,
+  "minZoom": 2
+}

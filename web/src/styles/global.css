@@ -1,0 +1,268 @@
+/* Dobrilo — site-wide chrome: tokens, base type, buttons, C01 nav, OS-style windows, the Dobrilo
+   helper icon. Map-engine-only rules (the pan/zoom canvas, place pins) stay in /public/map.css,
+   loaded just on S01, so that self-contained engine never depends on the Astro build. */
+
+:root {
+  --sea: #bee3e6;
+  --sea-deep: #9fd0d5;
+  --ink: #2b2a26;
+  --ink-soft: #5d5a52;
+  --paper: #fffaf0;
+  --line: rgba(43, 42, 38, .14);
+  --accent: #c8553d;
+  --bar-h: 52px;
+  --ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --story: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --glass-bg: rgba(255, 255, 255, .5);
+  --glass-border: rgba(255, 255, 255, .65);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.5 var(--ui);
+}
+a { color: inherit; }
+img { max-width: 100%; display: block; }
+
+/* ---- liquid glass: the recipe for every floating UI element (point 6) ---- */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(18px) saturate(1.7);
+  backdrop-filter: blur(18px) saturate(1.7);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 30px rgba(43, 42, 38, .16), inset 0 1px 0 rgba(255, 255, 255, .6);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background: rgba(255, 253, 248, .92); } /* fallback: no blur support */
+}
+
+/* ---- shared buttons (topbar, map zoom controls, CTAs, window chrome) ---- */
+.btn {
+  appearance: none;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  backdrop-filter: blur(14px) saturate(1.6);
+  color: var(--ink);
+  font: 600 14px/1 var(--ui);
+  height: 36px;
+  min-width: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.btn:hover { background: rgba(255, 255, 255, .72); }
+.btn:focus-visible, a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--ink); outline-offset: 2px;
+}
+.btn:disabled { opacity: .4; cursor: default; }
+.btn--icon { font-size: 20px; padding: 0; width: 36px; }
+.btn--primary { background: var(--accent); border-color: var(--accent); color: var(--paper); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.btn--primary:hover { background: #b24a35; }
+.btn-group { display: inline-flex; gap: 6px; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px; background: rgba(255, 255, 255, .28); }
+.seg .btn { border-color: transparent; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.seg .btn[aria-pressed="true"] { background: rgba(255, 255, 255, .75); border-color: var(--glass-border); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+
+/* ---- C01 footer (normal document pages only — S01 has no footer, it's a fixed-viewport shell) ----
+   The header/topbar was removed entirely on 2026-10-19 (Jachym: redundant, everything in it is
+   reachable elsewhere — breadcrumbs + back-links on every page, the map itself for places, the
+   Dobrilo corner icon for his profile). */
+.site-footer {
+  padding: 28px 16px 40px; border-top: 1px solid var(--line);
+  color: var(--ink-soft); font-size: 14px;
+}
+.site-footer a { color: var(--ink); }
+
+/* ---- generic content containers reused across every place/content page ---- */
+.page-hero { padding: 28px 16px 8px; max-width: 920px; margin: 0 auto; }
+.page-hero__eyebrow { font: 600 13px/1 var(--ui); color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; }
+.page-hero h1 { font: 700 34px/1.2 var(--story); margin: 6px 0 10px; }
+.page-hero__desc { font-size: 17px; color: var(--ink-soft); max-width: 62ch; }
+.breadcrumb { font-size: 14px; color: var(--ink-soft); margin: 0 0 6px; }
+.breadcrumb a { color: var(--ink-soft); }
+.section { max-width: 920px; margin: 0 auto; padding: 20px 16px; }
+.section h2 { font: 700 22px/1.3 var(--story); margin: 0 0 12px; }
+.card-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.card {
+  display: block; padding: 16px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--paper); text-decoration: none; color: var(--ink);
+}
+.card:hover { border-color: var(--ink); }
+.card img { border-radius: 8px; margin-bottom: 10px; aspect-ratio: 16/10; object-fit: cover; width: 100%; }
+.card b { display: block; font: 700 17px/1.3 var(--story); }
+.card span { display: block; color: var(--ink-soft); font-size: 14px; margin-top: 2px; }
+.card__eyebrow {
+  display: block; font: 600 12px/1.4 var(--ui); text-transform: uppercase;
+  letter-spacing: .03em; color: var(--accent); margin-bottom: 2px;
+}
+.back-link { display: inline-block; margin: 18px 16px 0; font-size: 14px; }
+
+.placeholder-flag {
+  display: inline-flex; align-items: center; gap: 6px; margin: 10px 0;
+  padding: 4px 10px; border-radius: 999px; background: #fff3e0; color: #8a5a00;
+  font: 600 12px/1.6 var(--ui); border: 1px solid #f0d9ad;
+}
+
+/* subject card (S04) — title+description link, separate first-video CTA (spec: don't nest links) */
+.subject-card {
+  border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: var(--paper);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.subject-card__title { text-decoration: none; color: var(--ink); }
+.subject-card__title b { display: block; font: 700 17px/1.3 var(--story); }
+.subject-card__title span { display: block; color: var(--ink-soft); font-size: 14px; margin-top: 2px; }
+.subject-card__title:hover b { text-decoration: underline; }
+.subject-card__cta { align-self: flex-start; }
+
+.video-player { display: block; width: 100%; height: auto; max-height: 72vh; margin: 0 auto; border-radius: 12px; background: #000; }
+
+/* video detail (S08) */
+.video-section h1 { font: 700 28px/1.25 var(--story); margin: 4px 0 6px; }
+.video-meta { list-style: none; padding: 0; margin: 10px 0 0; display: flex; gap: 16px; color: var(--ink-soft); font-size: 14px; flex-wrap: wrap; }
+
+/* person profile (S14) */
+.person-hero { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.person-hero__photo { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.person-hero__photo--fallback { display: flex; align-items: center; justify-content: center; background: var(--sea); color: var(--ink); font: 700 48px/1 var(--story); }
+.person-hero h1 { font: 700 28px/1.25 var(--story); margin: 0 0 2px; }
+.person-hero__role { color: var(--ink-soft); font-weight: 600; margin: 0 0 10px; }
+@media (max-width: 480px) { .person-hero { flex-direction: column; align-items: center; text-align: center; } }
+
+/* character profile (S16) */
+.character-hero { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.character-hero__img { width: 160px; height: auto; flex-shrink: 0; }
+.character-hero h1 { font: 700 28px/1.25 var(--story); margin: 0 0 8px; }
+@media (max-width: 480px) { .character-hero { flex-direction: column; align-items: center; text-align: center; } }
+
+/* generic place page (S07-shaped locations, §content-page) */
+.place-page__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.place-page__list li { padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); font-size: 15px; }
+
+/* 404 */
+.not-found { max-width: 560px; padding-top: 60px; padding-bottom: 60px; }
+.not-found h1 { font: 700 28px/1.3 var(--story); margin: 0 0 10px; }
+
+@media (max-width: 760px) {
+  .page-hero h1 { font-size: 26px; }
+  .card-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 420px) {
+  .card-grid { grid-template-columns: 1fr; }
+}
+
+/* =====================================================================================
+   OS-style windows (point 5) — clicking an internal link opens its content in a floating,
+   draggable, stackable window instead of navigating; the same URL still renders as a normal
+   page on direct load (windows.js intercepts clicks and injects fetched <main> markup).
+   ===================================================================================== */
+#window-layer {
+  position: fixed; inset: 0; z-index: 60;
+  pointer-events: none; /* only individual windows (and their contents) are interactive */
+}
+.os-window {
+  position: absolute;
+  width: min(760px, 92vw);
+  max-height: min(84vh, 880px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+  pointer-events: auto;
+  box-shadow: 0 24px 60px rgba(43, 42, 38, .28), inset 0 1px 0 rgba(255, 255, 255, .6);
+}
+.os-window__titlebar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 10px 10px 16px;
+  cursor: grab;
+  background: rgba(255, 255, 255, .6);
+  -webkit-backdrop-filter: blur(18px) saturate(1.7);
+  backdrop-filter: blur(18px) saturate(1.7);
+  border-bottom: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+.os-window__titlebar:active { cursor: grabbing; }
+.os-window__title { font: 700 14px/1.3 var(--story); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.os-window__close {
+  appearance: none; border: 0; cursor: pointer;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(43, 42, 38, .08);
+  color: var(--ink);
+  font: 600 13px/1 var(--ui);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.os-window__close:hover { background: var(--accent); color: var(--paper); }
+.os-window__body {
+  overflow-y: auto;
+  background: rgba(255, 250, 240, .9);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.os-window__body .topbar, .os-window__body .site-footer { display: none; } /* fetched page chrome, not needed inside a window */
+.os-window__body main { padding-top: 0 !important; }
+.os-window.is-loading .os-window__body { display: flex; align-items: center; justify-content: center; min-height: 160px; color: var(--ink-soft); }
+@media (max-width: 560px) {
+  .os-window { width: 94vw; max-height: 86vh; }
+}
+
+/* ---- fullscreen toggle (point 5: "give the impression it really is an OS") ---- */
+.fullscreen-toggle {
+  position: fixed; right: 16px; bottom: 16px; z-index: 45;
+}
+
+/* ---- Dobrilo corner helper (point 1) ---- */
+.dobrilo-helper {
+  position: fixed; left: 16px; bottom: 16px; z-index: 45;
+}
+.dobrilo-helper__icon-btn {
+  appearance: none; border: 0; background: none; padding: 0; margin: 0;
+  border-radius: 50%; display: block; line-height: 0;
+}
+.dobrilo-helper__icon {
+  display: block; width: 56px; height: 56px; border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 6px 18px rgba(43, 42, 38, .3);
+  object-fit: cover; object-position: center top;
+  cursor: pointer; background: var(--sea);
+}
+.dobrilo-helper__bubble {
+  position: absolute; left: 0; bottom: calc(100% + 12px);
+  width: max(240px, min(320px, 80vw));
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(6px) scale(.98);
+  transform-origin: bottom left;
+  transition: opacity .15s ease, transform .15s ease;
+  pointer-events: none;
+}
+.dobrilo-helper__bubble::after {
+  content: "";
+  position: absolute; left: 22px; top: 100%;
+  width: 16px; height: 16px;
+  background: inherit;
+  border-right: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  transform: translateY(-9px) rotate(45deg);
+  -webkit-backdrop-filter: inherit; backdrop-filter: inherit;
+}
+.dobrilo-helper:hover .dobrilo-helper__bubble,
+.dobrilo-helper:focus-within .dobrilo-helper__bubble {
+  opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
+}
+.dobrilo-helper__bubble p { margin: 0 0 6px; }
+.dobrilo-helper__bubble p:last-child { margin-bottom: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dobrilo-helper__bubble { transition: none; }
+}

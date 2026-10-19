@@ -1,0 +1,186 @@
+/* Dobrilo — S01 Mapa Ostrova Socci: map-engine-only rules.
+   Loaded as a plain stylesheet (not bundled) so map.js stays dependency-free.
+   Shared chrome (tokens, buttons, nav, glass) lives in src/styles/global.css instead. */
+
+/* ---- S01 is a fixed full-viewport "desktop" shell, not a scrolling document (point 1/2) ---- */
+.island {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+.dmap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--sea);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+}
+.dmap:focus-visible { box-shadow: inset 0 0 0 3px var(--ink); }
+.dmap.is-dragging { cursor: grabbing; }
+.island[data-view="seznam"] .dmap { display: none; }
+
+/* floating glass control pill — no header above it anymore, so this sits near the viewport top */
+.island__bar {
+  position: fixed;
+  top: 16px;
+  left: 16px; right: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 999px;
+  pointer-events: none; /* only its buttons are interactive */
+}
+.island__bar > * { pointer-events: auto; }
+.island[data-view="seznam"] .zoom-controls { visibility: hidden; }
+.island__bar .btn { white-space: nowrap; }
+@media (max-width: 420px) {
+  .island__bar { top: 10px; left: 10px; right: 10px; padding: 6px; }
+  .island__bar .btn { font-size: 13px; padding: 0 10px; height: 34px; }
+  .island__bar .btn--icon { width: 34px; min-width: 34px; padding: 0; font-size: 18px; }
+  .btn-group { gap: 4px; }
+}
+
+.dmap__layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  pointer-events: none;
+}
+.dmap__layer img { display: block; width: 100%; height: 100%; -webkit-user-drag: none; }
+.dmap__clouds { transition: opacity .25s linear; }
+.dmap__places { position: absolute; inset: 0; pointer-events: none; }
+
+/* ---- places: pin + label share one target (spec 3.2) ---- */
+.place {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink);
+  text-decoration: none;
+  will-change: transform;
+  -webkit-tap-highlight-color: transparent;
+}
+.place__pin {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--paper);
+  box-shadow: 0 1px 4px rgba(0,0,0,.35);
+  transition: transform .2s ease;
+  background-size: cover;
+  background-position: center top;
+}
+/* K13: a character pin (e.g. Dobrilo) carries its own portrait via inline style
+   (set from content-collection `image`/`pinImage` in the bootstrap script) and
+   is a little larger than a plain place dot so the illustration reads clearly. */
+.place[data-type="character"] .place__pin {
+  width: 34px;
+  height: 34px;
+  border-width: 2px;
+}
+.place__label {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255,250,240,.85);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  font: 600 14px/1.3 var(--story);
+  white-space: nowrap;
+  transition: opacity .15s ease;
+}
+/* every pin is always visible (point 7); its label only appears once zoomed into that place's
+   area (map.js toggles .is-far) — on hover/focus it shows regardless, so it's still discoverable
+   while zoomed out */
+.place.is-far .place__label { display: none; }
+.place.is-far:hover .place__label,
+.place.is-far:focus-visible .place__label { display: block; }
+.place.is-crowded .place__label { opacity: 0; }
+.place:hover, .place:focus-visible { z-index: 2; }
+.place:hover .place__label,
+.place:focus-visible .place__label { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+.place:hover .place__pin,
+.place:focus-visible .place__pin { transform: scale(1.2); }
+.place:focus-visible { outline: none; }
+.place:focus-visible .place__label { outline: 2px solid var(--ink); outline-offset: 1px; }
+
+/* highlighted place (?misto=…): ring + bigger pin + bold label — not colour alone */
+.place.is-active { z-index: 3; }
+.place.is-active .place__pin { transform: scale(1.3); box-shadow: 0 0 0 4px var(--ink), 0 2px 6px rgba(0,0,0,.4); }
+.place.is-active .place__label { opacity: 1; background: var(--ink); color: var(--paper); }
+.place.is-active .place__pin::after {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  animation: ping 1.8s ease-out infinite;
+}
+.place__pin { position: relative; }
+@keyframes ping { from { transform: scale(.5); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
+
+/* ---- K18/K19 Seznam míst (same places; works without the illustration) ---- */
+.places-list {
+  list-style: none;
+  margin: 0;
+  padding: 84px 16px 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+  background: var(--sea);
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  align-content: start;
+}
+.island[data-view="mapa"] .places-list { display: none; }
+.places-list a {
+  display: block;
+  height: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--line);
+}
+.places-list a:hover b { text-decoration: underline; }
+.places-list a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.places-list b { display: block; font: 700 17px/1.3 var(--story); }
+.places-list span { display: block; color: var(--ink-soft); font-size: 14px; margin-top: 2px; }
+.places-list li.is-active a { border: 2px solid var(--ink); }
+.places-list li.is-active b::before { content: "▸ "; }
+
+/* ---- edit helper (?edit) ---- */
+.dmap__coords {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(0,0,0,.72);
+  color: #fff;
+  font: 12px/1.4 ui-monospace, Menlo, monospace;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .place__pin, .place__label, .dmap__clouds { transition: none; }
+  .place.is-active .place__pin::after { animation: none; opacity: .6; transform: none; }
+}
